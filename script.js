@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'lottery-names-v1';
+const STORAGE_KEY = 'lottery-names-v2'; // v2 করা হলো যাতে আগের সেভ করা নাম না আসে
 const DEFAULT_NAMES = ['আরিফ', 'শুভ', 'হিরন', 'সারোয়ার', 'আশিক', 'রোমান'];
 
 const displayEl = document.getElementById('display');
@@ -7,6 +7,7 @@ const editBtn   = document.getElementById('editBtn');
 const resetBtn  = document.getElementById('resetBtn');
 const editorEl  = document.getElementById('editor');
 const inputsEl  = document.getElementById('inputs');
+const addInputBtn = document.getElementById('addInputBtn');
 const saveBtn   = document.getElementById('saveBtn');
 
 let names = loadNames();
@@ -16,7 +17,8 @@ let rolling = false;
 function loadNames() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (Array.isArray(saved) && saved.length === 6 && saved.every(n => typeof n === 'string')) {
+    // এখন যেকোনো সংখ্যক নাম গ্রহণ করবে (অন্তত ১টি থাকতে হবে)
+    if (Array.isArray(saved) && saved.length > 0 && saved.every(n => typeof n === 'string')) {
       return saved;
     }
   } catch (e) { /* ignore */ }
@@ -45,18 +47,16 @@ function pickWinner() {
   pickBtn.disabled = true;
   displayEl.classList.remove('winner');
 
-  const DURATION = 2600;          // মোট স্পিন সময় (ms)
+  const DURATION = 2600;
   const startTime = Date.now();
 
   function tick() {
     const elapsed = Date.now() - startTime;
     const progress = Math.min(elapsed / DURATION, 1);
 
-    // র্যান্ডম নাম দেখাও
     displayEl.textContent = validNames[randomIndex()];
 
     if (progress < 1) {
-      // শুরুতে দ্রুত, শেষে ধীরে ধীরে থামবে
       const delay = 45 + Math.pow(progress, 3) * 380;
       setTimeout(tick, delay);
     } else {
@@ -81,17 +81,37 @@ function resetDisplay() {
   displayEl.textContent = 'প্রস্তুত?';
 }
 
-/* ---------- Editor ---------- */
+/* ---------- Editor (Dynamic) ---------- */
+function createInputRow(value = '') {
+  const row = document.createElement('div');
+  row.className = 'input-row';
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = value;
+  input.placeholder = 'নাম লিখুন';
+  input.maxLength = 30;
+
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.className = 'remove-btn';
+  removeBtn.textContent = '✕';
+  removeBtn.title = 'এই নামটি মুছে ফেলুন';
+  removeBtn.addEventListener('click', () => {
+    row.remove();
+  });
+
+  row.appendChild(input);
+  row.appendChild(removeBtn);
+  inputsEl.appendChild(row);
+}
+
 function buildEditor() {
   inputsEl.innerHTML = '';
-  names.forEach((name, i) => {
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.value = name;
-    input.placeholder = `নাম ${i + 1}`;
-    input.maxLength = 30;
-    inputsEl.appendChild(input);
-  });
+  names.forEach(name => createInputRow(name));
+  // ফোকাস শেষ ইনপুটে দাও
+  const lastInput = inputsEl.querySelector('.input-row:last-child input');
+  if (lastInput) lastInput.focus();
 }
 
 function toggleEditor() {
@@ -106,8 +126,19 @@ function toggleEditor() {
 }
 
 function applyEditor() {
-  const values = [...inputsEl.querySelectorAll('input')].map(inp => inp.value.trim());
-  names = values.map((v, i) => v || `নাম ${i + 1}`);
+  const rows = inputsEl.querySelectorAll('.input-row');
+  const newNames = [];
+  rows.forEach(row => {
+    const val = row.querySelector('input').value.trim();
+    if (val) newNames.push(val);
+  });
+
+  if (newNames.length < 2) {
+    alert('কমপক্ষে ২টি নাম থাকতে হবে!');
+    return;
+  }
+
+  names = newNames;
   saveNames(names);
   editorEl.classList.add('hidden');
   editBtn.textContent = 'নাম এডিট';
@@ -118,4 +149,11 @@ function applyEditor() {
 pickBtn.addEventListener('click', pickWinner);
 resetBtn.addEventListener('click', resetDisplay);
 editBtn.addEventListener('click', toggleEditor);
+addInputBtn.addEventListener('click', () => {
+  createInputRow();
+  const allInputs = inputsEl.querySelectorAll('.input-row input');
+  if (allInputs.length > 0) {
+    allInputs[allInputs.length - 1].focus();
+  }
+});
 saveBtn.addEventListener('click', applyEditor);
