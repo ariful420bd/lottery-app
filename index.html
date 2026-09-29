@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>লটারি — ৬ জনের মধ্যে একজন</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="card">
+    <h1>🎲 লটারি</h1>
+    <p class="sub">৬ জনের মধ্যে কে ভাগ্যবান?</p>
+
+    <div class="display" id="display">প্রস্তুত?</div>
+
+    <button class="pick" id="pickBtn">লটারি নাও</button>
+
+    <div class="row">
+      <button class="ghost" id="editBtn">নাম এডিট</button>
+      <button class="ghost" id="resetBtn">রিসেট</button>
+    </div>
+
+    <div class="editor hidden" id="editor">
+      <div class="inputs" id="inputs"></div>
+      <button class="ghost save" id="saveBtn">সেভ করুন</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
